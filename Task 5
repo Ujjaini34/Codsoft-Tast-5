@@ -1,0 +1,44 @@
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import classification_report, precision_recall_fscore_support
+from imblearn.over_sampling import SMOTE
+
+# Load the dataset
+data = pd.read_csv(r'C:\Users\Ujjaini\OneDrive\Desktop\CodSoft\Book2.csv')  # Adjust the file path
+
+# Print the first few rows and class distribution
+print(data.head())
+print(data['Class'].value_counts())
+
+# Preprocessing
+X = data.drop('Class', axis=1)
+y = data['Class']
+
+# Check if y has more than one class
+if y.nunique() > 1:
+    # Normalizing the data
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X)
+
+    # Handling class imbalance
+    smote = SMOTE()
+    X_resampled, y_resampled = smote.fit_resample(X_scaled, y)
+
+    # Splitting the dataset
+    X_train, X_test, y_train, y_test = train_test_split(X_resampled, y_resampled, test_size=0.2, random_state=42)
+
+    # Training the model
+    model = RandomForestClassifier()
+    model.fit(X_train, y_train)
+
+    # Evaluating the model
+    y_pred = model.predict(X_test)
+    print(classification_report(y_test, y_pred))
+
+    # Precision, Recall, F1-Score
+    precision, recall, f1, _ = precision_recall_fscore_support(y_test, y_pred, average='binary')
+    print(f'Precision: {precision}, Recall: {recall}, F1-Score: {f1}')
+else:
+    print("The target variable 'y' needs to have more than one class.")
